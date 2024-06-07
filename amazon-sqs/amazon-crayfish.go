@@ -193,7 +193,9 @@ func crayfish(T int, lb, ub []float64, f string, X [][]float64, F benchmarks.Fun
 func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 
 	// Create a new SQS session and client for the output queue
-	s := session.Must(session.NewSession())
+	s := session.Must(session.NewSession(&aws.Config{
+		Region: aws.String("aws-region"),
+	}))
 	svc := sqs.New(s)
 	sqsOutUrl := "output-sqs-queue-url"
 
