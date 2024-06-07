@@ -155,7 +155,7 @@ func main() {
 	// Create an SQS service client
 	svc := sqs.New(sess)
 	sqsUrl1 := "input-sqs-queue-url"  // Url of the input SQS queue
-	sqsUrl2 := "output-sqs-queue-url" // Url od the output SQS queue                                                            // Url of the output SQS queue
+	sqsUrl2 := "output-sqs-queue-url" // Url od the output SQS queue                                                         
 
 	// Call the function to nitialize and divide population, then publishing them to the input SQS queue
 	err = initializePopulation(N, k, t, F, svc, sqsUrl1)
