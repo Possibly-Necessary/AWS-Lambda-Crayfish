@@ -108,7 +108,7 @@ func initializePopulation(N, k, t int, fn string, svc *sqs.SQS, sqsUrl string) e
 
 }
 
-// Function(s) that handle the aggregatio part
+// Function(s) that handle the aggregation part
 func NewAggregator() *Aggregator {
 	return &Aggregator{
 		overallBestFit: math.Inf(1),
@@ -132,8 +132,6 @@ func (a *Aggregator) updateOverallResults(result Result) {
 	}
 
 }
-
-//______ Part that receives the results from the result SQS queue and aggregates them_________
 
 func main() {
 
