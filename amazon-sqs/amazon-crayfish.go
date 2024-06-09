@@ -207,7 +207,7 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 			return err
 		}
 
-		// Get the benchmar function specifications from rabbitData.F
+		// Get the benchmark function specifications from rabbitData.F
 		specs := benchmarks.GetFunction(sqsData.F)
 		lb := specs.LB
 		ub := specs.UB
