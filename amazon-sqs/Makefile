@@ -10,7 +10,7 @@ deploy: # (*) -- running the command 'make deploy' will execute the below comman
     zip -r function.zip main benchmark/* go.mod go.sum # Create a zip file to package the Lambda function with its dependencies
     aws lambda create-function --function-name "Handler" \ # Create a new Lambda function
         --runtime go1.x --role "IAM-Role-ARN" \ # Set permissions for the Lambda function to communicate with other AWS services (e.g., SQS queues)
-        --handler main --zip-file fileb://function.zip \ # Point to the source code zip binary file to upload
+        --handler main --zip-file fileb://function.zip \ # Point to the source code zip binary file to upload (uploads to an AWS S3 bucket).
         --region "AWS-Region"
 
 update: # Separate target for function updates - used when updating an existing/deployed Lmabda function - 'make updat' executes this.
