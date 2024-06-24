@@ -24,7 +24,7 @@ deploy: # (*) -- running the command 'make deploy' will execute the below comman
         #--region "AWS-Region"
 
 update: # Separate target for function updates - used when updating an existing/deployed Lmabda function - 'make update' executes this.
-	go build -o bootstrap amazon-crayfish.go
+    go build -o bootstrap amazon-crayfish.go
     chmod 755 bootstrap
     find . -type d -exec chmod 755 {} \;
     find . -type f ! -name 'bootstrap' -exec chmod 644 {} \;
