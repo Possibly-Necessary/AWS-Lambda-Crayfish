@@ -20,7 +20,7 @@ deploy: # (*) -- running the command 'make deploy' will execute the below comman
 		--architectures $(GOARCH) \ 
 		--role arn:aws:iam::account-id:role/lambda-role \
 		--zip-file filleb://awsCrayfish.zip | jq . 
-#		--handler main --zip-file fileb://function.zip \ # Point to the source code zip binary file to upload
+#		--handler main --zip-file fileb://function.zip \ # Point to the source code zip binary file to upload (uploads to AWS S3 bucket if the zipped file is more than 50MB)
         #--region "AWS-Region"
 
 update: # Separate target for function updates - used when updating an existing/deployed Lmabda function - 'make update' executes this.
