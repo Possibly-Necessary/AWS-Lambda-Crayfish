@@ -23,7 +23,7 @@ deploy: # (*) -- running the command 'make deploy' will execute the below comman
 #		--handler main --zip-file fileb://function.zip \ # Point to the source code zip binary file to upload
         #--region "AWS-Region"
 
-update: # Separate target for function updates - used when updating an existing/deployed Lmabda function - 'make updat' executes this.
+update: # Separate target for function updates - used when updating an existing/deployed Lmabda function - 'make update' executes this.
 	go build -o bootstrap amazon-crayfish.go
     chmod 755 bootstrap
     find . -type d -exec chmod 755 {} \;
