@@ -16,7 +16,7 @@ deploy: # (*) -- running the command 'make deploy' will execute the below comman
 	zip awsCrayfish.zip bootstrap benchmark/* go.mod go.sum
         aws lambda create-function --function-name awsCrayfish \ # Create a new Lambda function
         #--runtime go1.x --role "IAM-Role-ARN" \ # Set permissions for the Lambda function to communicate with other AWS services (e.g., SQS queues)
-		--runtime provided.al12023 --handler bootstrap \ 
+		--runtime provided.al2023 --handler bootstrap \ 
 		--architectures $(GOARCH) \ 
 		--role arn:aws:iam::account-id:role/lambda-role \
 		--zip-file filleb://awsCrayfish.zip | jq . 
