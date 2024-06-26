@@ -30,5 +30,5 @@ update: # Separate target for function updates - used when updating an existing/
 	find . -type f ! -name 'bootstrap' -exec chmod 644 {} \;
 	zip awsCrayfish.zip bootstrap benchmark/* go.mod go.sum
 	aws lambda update-function-code --function-name awsCrayfish \
-	--zip-file fileb://awsCrayfish.zip | jq . # The 'jq' is a JSON process - it can format the output to be readable
+	--zip-file fileb://awsCrayfish.zip | jq . # The 'jq' is a JSON processor - it can format the output to be readable
 
