@@ -10,7 +10,7 @@ export CGO_ENABLED=0
 deploy: # (*) -- running the command 'make deploy' will execute the below commands in this exact order
 	go build -o bootstrap amazon-crayfish.go # build the Go Lambda function
 	chmod 755 bootstrap 
-	find . -type d -exec chmod 755 {}\;
+	find . -type d -exec chmod 755 {} \;
 	find . -type f ! -name 'bootstrap' -exec chmod 644 {} \;
     #zip -r function.zip main benchmark/* go.mod go.sum # Create a zip file to package the Lambda function with its dependencies
 	zip awsCrayfish.zip bootstrap benchmark/* go.mod go.sum
