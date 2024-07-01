@@ -19,7 +19,7 @@ deploy: # (*) -- running the command 'make deploy' will execute the below comman
 		--runtime provided.al2023 --handler bootstrap \ 
 		--architectures $(GOARCH) \ 
 		--role arn:aws:iam::account-id:role/lambda-role \
-		--zip-file filleb://amazon-crayfish.zip | jq . 
+		--zip-file fileb://amazon-crayfish.zip | jq . 
 #		--handler main --zip-file fileb://amazon-crayfish.zip \ # Point to the source code zip binary file to upload (uploads to AWS S3 bucket if the zipped file is more than 50MB)
         #--region "AWS-Region"
 
