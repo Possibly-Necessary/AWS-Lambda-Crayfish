@@ -13,14 +13,14 @@ deploy: # (*) -- running the command 'make deploy' will execute the below comman
 	find . -type d -exec chmod 755 {} \;
 	find . -type f ! -name 'bootstrap' -exec chmod 644 {} \;
     #zip -r function.zip main benchmark/* go.mod go.sum # Create a zip file to package the Lambda function with its dependencies
-	zip awsCrayfish.zip bootstrap benchmark/* go.mod go.sum
-        aws lambda create-function --function-name awsCrayfish \ # Create a new Lambda function
+	zip amazon-crayfish.zip bootstrap benchmark/* go.mod go.sum
+        aws lambda create-function --function-name amazon-crayfish \ # Create a new Lambda function
         #--runtime go1.x --role "IAM-Role-ARN" \ # Set permissions for the Lambda function to communicate with other AWS services (e.g., SQS queues)
 		--runtime provided.al2023 --handler bootstrap \ 
 		--architectures $(GOARCH) \ 
 		--role arn:aws:iam::account-id:role/lambda-role \
-		--zip-file filleb://awsCrayfish.zip | jq . 
-#		--handler main --zip-file fileb://function.zip \ # Point to the source code zip binary file to upload (uploads to AWS S3 bucket if the zipped file is more than 50MB)
+		--zip-file filleb://amazon-crayfish.zip | jq . 
+#		--handler main --zip-file fileb://amazon-crayfish.zip \ # Point to the source code zip binary file to upload (uploads to AWS S3 bucket if the zipped file is more than 50MB)
         #--region "AWS-Region"
 
 update: # Separate target for function updates - used when updating an existing/deployed Lmabda function - 'make update' executes this.
@@ -28,7 +28,7 @@ update: # Separate target for function updates - used when updating an existing/
 	chmod 755 bootstrap
 	find . -type d -exec chmod 755 {} \;
 	find . -type f ! -name 'bootstrap' -exec chmod 644 {} \;
-	zip awsCrayfish.zip bootstrap benchmark/* go.mod go.sum
-	aws lambda update-function-code --function-name awsCrayfish \
-	--zip-file fileb://awsCrayfish.zip | jq . # The 'jq' is a JSON processor - it can format the output to be readable
+	zip amazon-crayfish.zip bootstrap benchmark/* go.mod go.sum
+	aws lambda update-function-code --function-name amazon-crayfish \
+	--zip-file fileb://amazon-crayfish.zip | jq . # The 'jq' is a JSON processor - it can format the output to be readable
 
