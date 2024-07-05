@@ -23,6 +23,13 @@ deploy: # (*) -- running the command 'make deploy' will execute the below comman
 #		--handler main --zip-file fileb://amazon-crayfish.zip \ # Point to the source code zip binary file to upload (uploads to AWS S3 bucket if the zipped file is more than 50MB)
         #--region "AWS-Region"
 
+# Configure the function to get triggered by an SQS queue event -- 'make trigger' to execute this part.
+trigger:
+	aws lambda create-event-source-mapping \
+		--function-name amazon-crayfish \
+		--batch-size 10 \
+		--event-source-arn arn:aws:sqs:<region>:<account-id>:<queue-name>
+
 update: # Separate target for function updates - used when updating an existing/deployed Lmabda function - 'make update' executes this.
 	go build -o bootstrap amazon-crayfish.go
 	chmod 755 bootstrap
@@ -30,5 +37,5 @@ update: # Separate target for function updates - used when updating an existing/
 	find . -type f ! -name 'bootstrap' -exec chmod 644 {} \;
 	zip amazon-crayfish.zip bootstrap benchmark/* go.mod go.sum
 	aws lambda update-function-code --function-name amazon-crayfish \
-	--zip-file fileb://amazon-crayfish.zip | jq . # The 'jq' is a JSON processor - it can format the output to be readable
+		--zip-file fileb://amazon-crayfish.zip | jq . # The 'jq' is a JSON processor - it can format the output to be readable
 
