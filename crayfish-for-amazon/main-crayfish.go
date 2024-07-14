@@ -112,6 +112,7 @@ func initializePopulation(N, k, t int, fn string, svc *sqs.SQS, sqsUrl string) e
 func NewAggregator() *Aggregator {
 	return &Aggregator{
 		overallBestFit: math.Inf(1),
+		startTime: time.Now(),
 	}
 }
 
