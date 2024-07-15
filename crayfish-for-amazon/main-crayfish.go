@@ -143,6 +143,7 @@ func main() {
 	N, k, t := 500, 20, 500
 	// Benchmark function
 	F := "F16"
+	expectedSubPop := 0
 
 	// Create a new SQS session/service to send the sub-populations to the SQS queue
 	// AWS session
@@ -169,6 +170,10 @@ func main() {
 
 	// Wait for each sub-populations to compute the fitness value and publishes the results in SQS output queue
 	for {
+		if expectedSubPop >= k { // Break of all subpopulation results are received
+			break
+		}
+		
 		result, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
 			QueueUrl:            aws.String(sqsUrl2),
 			MaxNumberOfMessages: aws.Int64(1),
@@ -180,7 +185,7 @@ func main() {
 		}
 
 		if len(result.Messages) == 0 {
-			break
+			continue 
 		}
 
 		for _, message := range result.Messages {
@@ -190,6 +195,7 @@ func main() {
 			}
 
 			aggregator.updateOverallResults(res)
+			expectedSubPop++
 
 			// Delete the message from the queue after processing
 			_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
