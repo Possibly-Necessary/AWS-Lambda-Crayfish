@@ -83,8 +83,7 @@ func initializePopulation(N, k, t int, fn string, svc *sqs.SQS, sqsUrl string) e
 		Xsub[i] = X[startIndex : startIndex+subPopSize]
 		startIndex += subPopSize
 
-		// Using Goroutines
-
+		// Using Goroutines for I/O tasks
 		wg.Add(1)
 		go func(subPop [][]float64) {
 			defer wg.Done()
@@ -168,7 +167,7 @@ func main() {
 	// Create an SQS service client
 	svc := sqs.New(sess)
 	sqsUrl1 := "url-of-input-queue"  // Url of the input SQS queue
-	sqsUrl2 := "url-of-output-queue" // Url od the output SQS queue                                                            // Url of the output SQS queue
+	sqsUrl2 := "url-of-output-queue" // Url of the output SQS queue                                                            
 
 	aggregator := NewAggregator()
 	// Call the function to nitialize and divide population, then publishing them to the input SQS queue
@@ -198,7 +197,7 @@ func main() {
 			continue
 		}
 
-		// Using goroutines
+		// Using goroutines for I/O tasks
 		var wg sync.WaitGroup
 		for _, message := range result.Messages {
 			wg.Add(1)
