@@ -192,7 +192,7 @@ func crayfish(T int, lb, ub []float64, f string, X [][]float64, F benchmarks.Fun
 // Lambda function that receives an SQS event and gets triggered by it
 func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 
-	// Create a new SQS session and client for the output queue
+	// Create a new SQS session and client for the output queue (doing this here creates a new client each in invocation -- not recommended)
 	s := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String("aws-region"),
 	}))
