@@ -48,7 +48,7 @@ type Result struct {
 // Initializing SQS queue globally so that we do not create a new client for every invocation (helps with cold starts)
 var svc *sqs.SQS
 var sqsOutUrl = "output-sqs-queue-url"
-var function Message.F
+
 
 // For gob encoding
 var buffer bytes.Buffer
@@ -220,22 +220,22 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 
 	// Extract information from the Lambda context object 'ctx'
 	lc, ok := lambdacontext.FromContext(ctx)
-	if ok! {
+	if !ok {
 		log.Println("Failed to extract Lambda context.")
 		return errors.New("failed to extract Lambda conetxt.")
-	}
+     	}
 
-	// Log context
-    log.Printf("Function name: %s", lc.FunctionName)
-    log.Printf("Function version: %s", lc.FunctionVersion)
-    //log.Printf("Memory limit in MB: %d", lc.MemoryLimitInMB)
-    log.Printf("Log group name: %s", lc.LogGroupName)
-    log.Printf("Log stream name: %s", lc.LogStreamName)
-    log.Printf("AWS Request ID: %s", lc.AwsRequestID)
-    if lc.Identity != nil {
-        log.Printf("Cognito identity ID: %s", lc.Identity.CognitoIdentityID)
-        log.Printf("Cognito identity pool ID: %s", lc.Identity.CognitoIdentityPoolID)
-    }
+   	 // Log context
+   	log.Printf("Function name: %s", lc.FunctionName)
+    	log.Printf("Function version: %s", lc.FunctionVersion)
+    	//log.Printf("Memory limit in MB: %d", lc.MemoryLimitInMB)
+    	log.Printf("Log group name: %s", lc.LogGroupName)
+    	log.Printf("Log stream name: %s", lc.LogStreamName)
+    	log.Printf("AWS Request ID: %s", lc.AwsRequestID)
+    	if lc.Identity != nil {
+       	 	log.Printf("Cognito identity ID: %s", lc.Identity.CognitoIdentityID)
+        	log.Printf("Cognito identity pool ID: %s", lc.Identity.CognitoIdentityPoolID)
+   	 }
 
 	// Reading Events (sub-populations)
 	for _, message := range sqsEvent.Records {
