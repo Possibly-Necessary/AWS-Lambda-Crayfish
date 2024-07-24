@@ -5,6 +5,7 @@
 		- SQS AWS SDK client initialization moved outside the Lambda Handler to be reused across multipl requests.
 		- Moved Benchmark mapping outside (global scope of) the Handler function to minimize initialization time.
 		- Added context logging extracted from Lambda's context object. 
+  		- Added structured logging for AWS CloudWatch.
 */
 
 package main
@@ -28,6 +29,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/pkg/errors"
 )
+
+// For AWS CloudWatch/Lambda insight structured logging
+type LogEntry struct {
+	FunctionName          string `json:"functionName"`
+	FunctionVersion       string `json:"functionVersion"`
+	AWSRequestID          string `json:"awsRequestId"`
+	MemoryLimitInMB       int    `json:"memoryLimitInMB"`
+	LogGroupName          string `json:"logGroupName"`
+	LogStreamName         string `json:"logStreamName"`
+	CognitoIdentityID     string `json:"cognitoIdentityId,omitempty"`
+	CognitoIdentityPoolID string `json:"congnitoIdentityPoolId,omitempty"`
+	ExecutionTime         string `json:"executionTime"`
+	BenchmarkFunction     string `json:"benchmarkFunction"`
+}
 
 // For the input SQS
 type Message struct {
@@ -225,18 +240,6 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		return errors.New("failed to extract Lambda conetxt.")
      	}
 
-   	 // Log context
-   	log.Printf("Function name: %s", lc.FunctionName)
-    	log.Printf("Function version: %s", lc.FunctionVersion)
-    	//log.Printf("Memory limit in MB: %d", lc.MemoryLimitInMB)
-    	log.Printf("Log group name: %s", lc.LogGroupName)
-    	log.Printf("Log stream name: %s", lc.LogStreamName)
-    	log.Printf("AWS Request ID: %s", lc.AwsRequestID)
-    	if lc.Identity != nil {
-       	 	log.Printf("Cognito identity ID: %s", lc.Identity.CognitoIdentityID)
-        	log.Printf("Cognito identity pool ID: %s", lc.Identity.CognitoIdentityPoolID)
-   	 }
-
 	// Reading Events (sub-populations)
 	for _, message := range sqsEvent.Records {
 		var sqsData Message
@@ -259,9 +262,9 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		//dim := specs.Dim
 		F := selectedBenchmark(sqsData.F) // Get the actual function from the string
 
-		function = specs // Store the name of the benchmark function in the global variable for logging
+		function := sqsData.F // Store the name of the benchmark function in the global variable for logging
 
-		// Start crayfish algorithm
+		// Start crayfish algorithm and return results
 		bestFit, bestPos, globalCov := crayfish(sqsData.T, lb, ub, sqsData.F, sqsData.SubPopulation, F)
 
 		res := Result{
@@ -271,9 +274,9 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 			GlobalCov: globalCov,
 		}
 
-		// Encode using gob
+		// Encode results using gob
 		encoder := gob.NewEncoder(&buffer)
-		err := encoder.Encode(res)
+		err = encoder.Encode(res)
 
 		//jsonResult, err := json.Marshal(res)
 		if err != nil {
@@ -291,9 +294,28 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 	}
 
 	endTime := time.Since(startTime) // endTime - startTime
-	log.Printf("Memory limit in MB: %d", lc.MemoryLimitInMB) // Log memory after the algorithm's execution
-	log.Printf("Execution time of Lambda %v: ", endTime)
-	log.Printf("Executing Benchmark: %s", function)
+	
+	// Log/print the request ID, which is unique across the concurrent functions - this is to identify the unique function instances spawned from a particular invocation
+	// and calculate their execution time
+	log.Printf("Execution time: %v, AWS Request ID: %s", endTime, lc.AwsRequestID)
+	logEntry := LogEntry{
+		FunctionName:      lc.FunctionName,
+		FunctionVersion:   lc.FunctionVersion,
+		AWSRequestID:      lc.AwsRequestID,
+		MemoryLimitInMB:   lc.MemoryLimitInMB,
+		LogGroupName:      lc.LogGroupName,
+		LogStreamName:     lc.LogStreamName,
+		ExecutionTime:     endTime.String(),
+		BenchmarkFunction: sqsData.F,
+	}
+
+	if lc.Identity != nil {
+		logEntry.CognitoIdentityID = lc.Identity.CognitoIdentityID
+		logEntry.CognitoIdentityPoolID = lc.Identity.CognitoIdentityPoolID
+	}
+
+	logData, _ := json.Marshal(logEntry)
+	log.Println(string(logData))
 
 	return nil
 }
