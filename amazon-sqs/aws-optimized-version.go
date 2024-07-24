@@ -13,7 +13,7 @@ package main
 import (
 	benchmarks "amazon-c/benchmark"
 	"context"
-	//"encoding/json"
+	"encoding/json"
 	"bytes"
 	"encoding/gob"
 	"log"
