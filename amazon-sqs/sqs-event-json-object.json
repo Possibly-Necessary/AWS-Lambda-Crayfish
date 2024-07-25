@@ -1,0 +1,21 @@
+// JSON information in the event object of a Lambda function triggered by SQS queue
+{
+  "Records": [
+    {
+      "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78", // Unique identifier for every message
+      "receiptHandle": "MessageReceiptHandle", // Receipt 
+      "body": "gobEncodedData",  // sent message (which includes the sub-population) is encoding using gob -- which encodes everything to a binary string
+      "attributes": {
+        "ApproximateReceiveCount": "1", // Indication of the number of times this message has been received from the queue
+        "SentTimestamp": "1598467890000", // UNIX timestamp of the moment the message was sent to the target queue
+        "SenderId": "XXXXXXXXXX:user-Id", 
+        "ApproximateFirstReceiveTimestamp": "1598467900000" // First time this message was received.
+      },
+      "messageAttributes": {},
+      "md5OfBody": "7b270e59b47ff90a553787216d55d91d", // MD5 digest of the message (for message integrity/ error checks)
+      "eventSource": "aws:sqs", // Source that triggered the Lambda function
+      "eventSourceARN": "arn:aws:sqs:us-east-1:<XXXXX-ID>:SubPopQueue", // Amazon Resource Name (ARN) of the triggering SQS queue 
+      "awsRegion": "us-east-1" // AWS Region of the queue
+    }
+  ]
+}
