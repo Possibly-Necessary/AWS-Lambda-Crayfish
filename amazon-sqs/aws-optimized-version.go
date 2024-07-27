@@ -4,11 +4,13 @@
 		- Changed encoding/decoding message from JSON to 'gob' binary encoding/decoding (gob outperforms JSON -- it's fast and generates small data)
 		- SQS AWS SDK client initialization moved outside the Lambda Handler to be reused across multipl requests.
 		- Moved Benchmark mapping outside (global scope of) the Handler function to minimize initialization time.
+  
   	Other changes:
    
 		- Added context logging extracted from Lambda's context object. 
   		- Added structured logging for AWS CloudWatch.
     		- Added sub-population tracking.
+      		- Added AWS X-Ray subsegment tracing.
 */
 
 package main
