@@ -38,7 +38,7 @@ type LogEntry struct {
 	FunctionName          string `json:"functionName"`
 	FunctionVersion       string `json:"functionVersion"`
 	AWSRequestID          string `json:"awsRequestId"`
-	MemoryLimitInMB       int    `json:"memoryLimitInMB"`
+	MemoryLimitInMB       int32    `json:"memoryLimitInMB"`
 	LogGroupName          string `json:"logGroupName"`
 	LogStreamName         string `json:"logStreamName"`
 	CognitoIdentityID     string `json:"cognitoIdentityId,omitempty"`
@@ -50,6 +50,7 @@ type LogEntry struct {
 // For the input SQS
 type Message struct {
 	SubPopulation [][]float64
+	SubPopNum int
 	T             int    // Iteration
 	F             string // Function name
 	StartTime     time.Time
@@ -61,15 +62,12 @@ type Result struct {
 	BestFit   float64
 	BestPos   []float64
 	GlobalCov []float64
+	SubPopN []int
 }
 
 // Initializing SQS queue globally so that we do not create a new client for every invocation (helps with cold starts)
 var svc *sqs.SQS
 var sqsOutUrl = "output-sqs-queue-url"
-
-
-// For gob encoding
-var buffer bytes.Buffer
 
 // Function mappings moved to the global scope
 var functionMap = map[string]benchmarks.FunctionType{
@@ -94,6 +92,7 @@ func init() {
 		Region: aws.String("aws-region"),
 	}))
 	svc = sqs.New(s)
+	xray.AWS(svc.Client) // Wrap SQS client with X-Ray
 }
 
 // Function for dynamic benchmark selection
@@ -236,6 +235,8 @@ func crayfish(T int, lb, ub []float64, f string, X [][]float64, F benchmarks.Fun
 func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 	startTime := time.Now() // Record starting time of the Lambda function
 
+	subPopTrack := []int{} // To store the sub-population tracking number
+	
 	// Extract information from the Lambda context object 'ctx'
 	lc, ok := lambdacontext.FromContext(ctx)
 	if !ok {
@@ -270,13 +271,19 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		// Start crayfish algorithm and return results
 		bestFit, bestPos, globalCov := crayfish(sqsData.T, lb, ub, sqsData.F, sqsData.SubPopulation, F)
 
+		// Append sub-population number to the tracking list
+		subPopTrack = append(subPopTrack, sqsData.SubPopNum)
 		res := Result{
 			StartTime: sqsData.StartTime,
 			BestFit:   bestFit,
 			BestPos:   bestPos,
 			GlobalCov: globalCov,
+			SubPopN: subPopTrack,
 		}
 
+		// For gob encoding
+		var buffer bytes.Buffer
+		
 		// Encode results using gob
 		encoder := gob.NewEncoder(&buffer)
 		err = encoder.Encode(res)
@@ -286,14 +293,19 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 			log.Fatalf("Failed to encode results: %v", err)
 		}
 
-		_, err = svc.SendMessage(&sqs.SendMessageInput{
-			QueueUrl:    &sqsOutUrl,
-			MessageBody: aws.String(buffer.String()), // Changed 'aws.String(string(jsonResult)) 
-		})
+		// X-Ray subsegment tracing
+		xray.Capture(ctx, "SendResultsToSQS", func(ctx1 context.Context) error {
+			_, err = svc.SendMessage(&sqs.SendMessageInput{
+				QueueUrl:    &sqsOutUrl,
+				MessageBody: aws.String(buffer.String()), // Changed 'aws.String(string(jsonResult)) 
+			})
 
-		if err != nil {
-			log.Printf("Failed to send message: %v", err)
-		}
+			if err != nil {
+				log.Printf("Failed to send message: %v", err)
+				return err // Capture the error in the X-Ray subsegment
+			}
+			return nil
+		})
 	}
 
 	endTime := time.Since(startTime) // endTime - startTime
