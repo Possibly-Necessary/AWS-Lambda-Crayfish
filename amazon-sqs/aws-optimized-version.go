@@ -10,7 +10,7 @@
 		- Added context logging extracted from Lambda's context object. 
   		- Added structured logging for AWS CloudWatch.
     		- Added sub-population tracking.
-      		- Added AWS X-Ray subsegment tracing.
+      		- Added AWS X-Ray segment and subsegment tracing.
 */
 
 package main
@@ -123,8 +123,11 @@ func p_obj(x float64) float64 {
 	return 0.2 * (1 / (math.Sqrt(2*math.Pi) * 3)) * math.Exp(-math.Pow(x-25, 2)/(2*math.Pow(3, 2)))
 }
 
-func crayfish(T int, lb, ub []float64, f string, X [][]float64, F benchmarks.FunctionType) (x float64, y, z []float64) { // return bestFit, bestPos
-
+func crayfish(ctx context.Context, T int, lb, ub []float64, f string, X [][]float64, F benchmarks.FunctionType) (x float64, y, z []float64) { // return bestFit, bestPos
+	// X-Ray subsegment for Crafish function
+	ctx, subseg := xray.BeginSubsegment(ctx, "CrayfishFunction")
+	defer subseg.Close(nil)
+	
 	N := len(X)      // size of the sub-population
 	dim := len(X[0]) // dimension of the sub-populationl
 
@@ -285,7 +288,7 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		benchFunc = sqsData.F // Store the name of the benchmark function in the global variable for logging
 
 		// Start crayfish algorithm and return results
-		bestFit, bestPos, globalCov := crayfish(sqsData.T, lb, ub, sqsData.F, sqsData.SubPopulation, F)
+		bestFit, bestPos, globalCov := crayfish(ctx, sqsData.T, lb, ub, sqsData.F, sqsData.SubPopulation, F)
 
 		// Append sub-population number to the tracking list
 		subPopTrack = append(subPopTrack, sqsData.SubPopNum)
