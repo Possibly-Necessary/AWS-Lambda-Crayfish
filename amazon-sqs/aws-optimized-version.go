@@ -36,6 +36,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+/*
 // For AWS CloudWatch/Lambda insight structured logging
 type LogEntry struct {
 	FunctionName          string `json:"functionName"`
@@ -48,12 +49,19 @@ type LogEntry struct {
 	CognitoIdentityPoolID string `json:"congnitoIdentityPoolId,omitempty"`
 	ExecutionTime         string `json:"executionTime"`
 	BenchmarkFunction     string `json:"benchmarkFunction"`
+}*/
+
+type LogEntry struct {
+	RequestID         string `json:"requestId"`
+	FunctionArn       string `json:"functionArn"`
+	ExecutionTime     string `json:"executionTime"`
+	BenchmarkFunction string `json:"benchmarkFunction"`
 }
 
 // For the input SQS
 type Message struct {
 	SubPopulation [][]float64
-	SubPopNum int
+	SubPopNum     int
 	T             int    // Iteration
 	F             string // Function name
 	StartTime     time.Time
@@ -65,7 +73,7 @@ type Result struct {
 	BestFit   float64
 	BestPos   []float64
 	GlobalCov []float64
-	SubPopN []int
+	SubPopN   []int
 }
 
 // Initializing SQS queue globally so that we do not create a new client for every invocation (helps with cold starts)
@@ -236,9 +244,14 @@ func crayfish(T int, lb, ub []float64, f string, X [][]float64, F benchmarks.Fun
 // ________________________________________________________________
 // Lambda function that receives an SQS event and gets triggered by it
 func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
+	// Start an entire Lmabda segment (then later create a subsegment for the crayfish function)
+	ctx, seg := xray.BeginSegment(ctx, "CrayfishHandler")
+	defer seg.Close(nil)
+	
 	startTime := time.Now() // Record starting time of the Lambda function
 
 	subPopTrack := []int{} // To store the sub-population tracking number
+	var benchFunc string
 	
 	// Extract information from the Lambda context object 'ctx'
 	lc, ok := lambdacontext.FromContext(ctx)
@@ -269,7 +282,7 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		//dim := specs.Dim
 		F := selectedBenchmark(sqsData.F) // Get the actual function from the string
 
-		function := sqsData.F // Store the name of the benchmark function in the global variable for logging
+		benchFunc = sqsData.F // Store the name of the benchmark function in the global variable for logging
 
 		// Start crayfish algorithm and return results
 		bestFit, bestPos, globalCov := crayfish(sqsData.T, lb, ub, sqsData.F, sqsData.SubPopulation, F)
@@ -315,6 +328,7 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 	
 	// Log/print the request ID, which is unique across the concurrent functions - this is to identify the unique function instances spawned from a particular invocation
 	// and calculate their execution time
+	/*
 	log.Printf("Execution time: %v, AWS Request ID: %s", endTime, lc.AwsRequestID)
 	logEntry := LogEntry{
 		FunctionName:      lc.FunctionName,
@@ -333,7 +347,22 @@ func Handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 	}
 
 	logData, _ := json.Marshal(logEntry)
-	log.Println(string(logData))
+	log.Println(string(logData)) */
+
+	logEntry := LogEntry{
+		RequestID:         lc.AwsRequestID,
+		FunctionArn:       lc.InvokedFunctionArn,
+		ExecutionTime:     endTime.String(),
+		BenchmarkFunction: benchFunc,
+	}
+
+	jsonData, err := json.Marshal(logEntry)
+	if err != nil {
+		log.Printf("Error marshaling log data: %v", err)
+		return err
+	}
+
+	log.Println(string(jsonData))
 
 	return nil
 }
