@@ -124,7 +124,7 @@ func p_obj(x float64) float64 {
 }
 
 func crayfish(ctx context.Context, T int, lb, ub []float64, f string, X [][]float64, F benchmarks.FunctionType) (x float64, y, z []float64) { // return bestFit, bestPos
-	// X-Ray subsegment for Crafish function
+	// X-Ray subsegment for Crayfish function
 	ctx, subseg := xray.BeginSubsegment(ctx, "CrayfishFunction")
 	defer subseg.Close(nil)
 	
