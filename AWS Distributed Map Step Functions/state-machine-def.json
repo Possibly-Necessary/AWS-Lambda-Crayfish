@@ -1,0 +1,36 @@
+{
+    "Comment": "A state machine that processes sub-populations and aggregates results",
+    "StartAt": "InitializePopulation",
+    "States": {
+      "InitializePopulation": {
+        "Type": "Task",
+        "Resource": "arn:aws:lambda:region:account-id:function:initializePopulationLambda",
+        "Next": "ProcessSubPopulations"
+      },
+      "ProcessSubPopulations": {
+        "Type": "Map",
+        "InputPath": "$",
+        "ItemsPath": "$",
+        "MaxConcurrency": 10,
+        "Iterator": {
+          "StartAt": "ProcessEachSubPopulation",
+          "States": {
+            "ProcessEachSubPopulation": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:region:account-id:function:ProcessSubPopulation",
+              "End": true
+            }
+          }
+        },
+        "ResultPath": "$.subPopResults",
+        "Next": "AggregateResults"
+      },
+      "AggregateResults": {
+        "Type": "Task",
+        "Resource": "arn:aws:lambda:region:account-id:function:AggregateResultsLambda",
+        "InputPath": "$.subPopResults",
+        "End": true
+      }
+    }
+  }
+  
