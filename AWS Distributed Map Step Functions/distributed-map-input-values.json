@@ -1,0 +1,16 @@
+{
+  "SubPopulations": [
+    {
+      "SubPop": [[SubPop 1]],
+      "T": value,
+      "F": "functionName"
+    },
+    ...
+    
+    {
+      "SubPop": [[SubPop i]],
+      "T": value,
+      "F": "functionName"
+    },
+  ]
+}
