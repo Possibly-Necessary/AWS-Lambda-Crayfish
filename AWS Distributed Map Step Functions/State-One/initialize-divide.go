@@ -1,5 +1,5 @@
 // Lambda function that intialized sub-populations and trigger Step Function state machine
-// Suppopulation are added into an s3 bucket due to its large payload, and only the bucket's name and key (json file name) are passed to the second state 
+// Sub-populations are added into an s3 bucket due to its large payload, and only the bucket's name and key (json file name) are passed to the second state 
 
 package main
 
@@ -91,14 +91,27 @@ func initializePopulation(N, k, t int, f string) PopulationData { // Instead of 
 
 }
 
-func HandleDivision(ctx context.Context, parameters crayfishParameters) (PopulationData, error) {
+// Client session to S3 bucket
+func init() {
+	s := session.Must(session.NewSession(&aws.Config{
+		Region: aws.String("aws-region"),
+		}))
+	svc := s3.New(s)
+}
+
+func HandleDivision(ctx context.Context, parameters crayfishParameters) (map[string]string, error) { // (PopulationData, error) ----> old return value
 
 	// These parameters are defined as an input in the State Machine
 	// Crayfish parameters: population, sub-populations, COA iteration
 	//N, k, t := 500, 20, 500
 	//F := Benchmark function
 
+	// Bucket key (a.k.a json file name that will be stored in s3 aafter the execution of this funciton) --> this will be the source that the distributed map (next state) will read from
+	key := "population.json"
+	
 	result := initializePopulation(parameters.N, parameters.K, parameters.T, parameters.F)
+
+	// Encode result to json
 
 	return result, nil
 
