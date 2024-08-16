@@ -1,4 +1,5 @@
 // Lambda function that intialized sub-populations and trigger Step Function state machine
+// Suppopulation are added into an s3 bucket due to its large payload, and only the bucket's name and key are passed 
 
 package main
 
