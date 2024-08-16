@@ -111,9 +111,27 @@ func HandleDivision(ctx context.Context, parameters crayfishParameters) (map[str
 	
 	result := initializePopulation(parameters.N, parameters.K, parameters.T, parameters.F)
 
-	// Encode result to json
+	// Encode result to json before storing it to S3
+	jsonEncoded, err := json.Marshal(result.SubPopulations)
+	if err != nil {
+		return nil, err
+	}
 
-	return result, nil
+	// Upload to S3
+	_, err = svc.PutObject(&s3.PutObjectInput{
+		Bucket: aws.String(bucket), // Provide s3's bucket name
+		Key: aws.String(key), // Provide the key/file name 
+		Body: bytes.NewReader(jsonEncoded),  // Provide the content (encoded sub-populations)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{ // Return the input values for the next state
+		"Bucket": bucket,
+		"Key": key,
+	}, nil
 
 }
 
