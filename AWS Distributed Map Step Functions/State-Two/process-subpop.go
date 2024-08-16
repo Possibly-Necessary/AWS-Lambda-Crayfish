@@ -1,3 +1,6 @@
+// Lambda function of the second state in the COA state machine; its logic is developed for processing a single sub-population
+// This lambda function represents a single child workflow execution of applying COA algorithm on sub-population i and returning the corresponding results to the next state
+
 package main
 
 import (
