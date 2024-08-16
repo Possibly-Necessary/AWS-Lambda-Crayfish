@@ -1,5 +1,5 @@
 // Lambda function that intialized sub-populations and trigger Step Function state machine
-// Suppopulation are added into an s3 bucket due to its large payload, and only the bucket's name and key are passed 
+// Suppopulation are added into an s3 bucket due to its large payload, and only the bucket's name and key (json file name) are passed to the second state 
 
 package main
 
@@ -16,6 +16,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/service/s3"
 )
 
+var svc *s3.S3
+var bucket = "s3-bucket-name"
 // Structure for the input event of the state machine
 type crayfishParameters struct {
 	N int    `json:"n"`
