@@ -1,5 +1,5 @@
 {
-  "Comment": "Parallel Crayfish State Machine",
+  "Comment": "Parallel Crayfish State Machine for Small Payloads",
   "StartAt": "Initialize-Divide-Population",
   "States": {
     "Initialize-Divide-Population": {
