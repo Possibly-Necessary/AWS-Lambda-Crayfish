@@ -1,3 +1,6 @@
+// State three Lambda function: aggregates the parallel results of each subpopulation.
+// Outputs the overall fitness value among all subpopulations.
+
 package main
 
 import (
