@@ -8,6 +8,8 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"os"
+	"runtime/pprof"
 	"sync" // for goroutines
 	"time"
 
@@ -156,6 +158,14 @@ func (a *Aggregator) updateOverallResults(result Result) {
 
 func main() {
 
+	// Seting up memory profiling
+	fm, err := os.Create("mem.prof") // Profiling will be written in this file; type go tool pprof mem.prof, then web
+	if err != nil {
+		log.Println("could not create memory profile: ", err)
+		return
+	}
+	defer fm.Close()
+
 	var waitStart, waitEnd time.Time
 	var totalWaitTime time.Duration
 
@@ -264,5 +274,11 @@ func main() {
 	log.Printf("Executed in: %s", workflowExecTime.String())
 	log.Printf("Sub-population numbers: %v", subPopTrack)
 	log.Printf("Waiting For messages from SQS: %s", totalWaitTime.String())
+
+	// Write mem info at the end
+	if err := pprof.WriteHeapProfile(fm); err != nil {
+		log.Println("could not start CPU profile: ", err)
+		return
+	}
 
 }
