@@ -13,7 +13,6 @@ deploy:
 	aws lambda create-function --function-name Crayfish\
 		--runtime provided.al2023 --handler bootstrap \
 		--architectures x86_64 \
-		--role arn:aws:iam::382277151775:role/sqsCrayfish \
 		--zip-file fileb://Crayfish.zip 
 
 update:
