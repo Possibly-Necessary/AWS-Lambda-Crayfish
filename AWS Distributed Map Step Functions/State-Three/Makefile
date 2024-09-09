@@ -14,7 +14,6 @@ deploy:
 	aws lambda create-function --function-name aggrCrayfish\
 		--runtime provided.al2023 --handler bootstrap \
 		--architectures x86_64 \
-		--role arn:aws:iam::382277151775:role/sqsCrayfish \
 		--zip-file fileb://aggrCrayfish.zip 
 
 update: # Separate target for function updates - used when updating an existing/deployed Lmabda function - 'make update' executes this.
